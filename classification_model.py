@@ -6,7 +6,11 @@ from sklearn.metrics import accuracy_score, classification_report
 
 jsonfile = open('credit_default.json')
 data = json.load(jsonfile)
-df = pd.DataFrame(data, columns=['age', 'avg_saving_balance', 'avg_checking_balance', 'avg_credit_amt', 'avg_duration', 'default'])
+# df = pd.DataFrame(data, columns=['age', 'avg_saving_balance', 'avg_checking_balance', 'avg_credit_amt', 'avg_duration', 'default'])
+df = pd.DataFrame(data)
+
+# Konversi variabel kategorikal menjadi variabel dummy
+df = pd.get_dummies(df, columns=['sex', 'job', 'housing', 'purpose'], drop_first=True)
 
 # Pisahkan atribut dan target
 X = df.drop('default', axis=1)
@@ -26,7 +30,7 @@ y_pred = logreg.predict(X_test)
 
 # Evaluasi performa model
 accuracy = accuracy_score(y_test, y_pred)
-csf_rep = classification_report(y_test, y_pred)
+csf_rep = classification_report(y_test, y_pred, zero_division=1)
 
 print("Akurasi:", accuracy)
 print("Classification Report:\n", csf_rep)
