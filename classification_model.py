@@ -1,6 +1,7 @@
 import json
+import warnings
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
@@ -8,6 +9,11 @@ jsonfile = open('credit_default.json')
 data = json.load(jsonfile)
 # df = pd.DataFrame(data, columns=['age', 'avg_saving_balance', 'avg_checking_balance', 'avg_credit_amt', 'avg_duration', 'default'])
 df = pd.DataFrame(data)
+
+# Coba perbaikan data dengan mengisi nilai yang null
+# numeric_columns = ['age', 'avg_saving_balance', 'avg_checking_balance', 'avg_credit_amt', 'avg_duration', 'default']
+# df[numeric_columns] = df[numeric_columns].fillna(df[numeric_columns].mean())
+# df['job'].dropna(inplace=True)
 
 # Konversi variabel kategorikal menjadi variabel dummy
 df = pd.get_dummies(df, columns=['sex', 'job', 'housing', 'purpose'], drop_first=True)
@@ -34,3 +40,28 @@ csf_rep = classification_report(y_test, y_pred, zero_division=1)
 
 print("Akurasi:", accuracy)
 print("Classification Report:\n", csf_rep)
+
+# Definisikan kombinasi hyperparameter yang akan diuji
+param_grid = {
+    'penalty': ['l1', 'l2'],
+    'C': [0.001, 0.01, 0.1, 1, 10, 100]
+}
+
+# Buat objek Grid Search
+grid_search = GridSearchCV(logreg, param_grid, cv=5, scoring='accuracy')
+
+# Latih model pada dataset pelatihan dengan Grid Search
+grid_search.fit(X_train, y_train)
+
+# Hyperparamter terbaik
+best_params = grid_search.best_params_
+best_model = grid_search.best_estimator_
+
+# Evaluasi performa model terbaik pada data pengujian
+y_pred_best = best_model.predict(X_test)
+best_accuracy = accuracy_score(y_test, y_pred_best)
+
+warnings.filterwarnings("ignore")
+
+print("Hyperparamater terbaik:", best_params)
+print("Akurasi model terbaik:", best_accuracy)
